@@ -9,7 +9,37 @@ Community-collected benchmark results for **local** LLM inference. Everyone runs
 
 Single-stream decode throughput on local hardware (llama-server + the model group's pinned probe). One pinned recipe per VRAM tier; rows are ranked within a tier, everything else is listed unranked. Protocol: benchmarks/inference-speed/PROTOCOL.md
 
-_No results yet. Be the first to submit one!_
+#### qwen3.8-27b / low-end (16 GB)
+
+_No ranked results in this tier yet._
+
+#### qwen3.8-27b / med-end (24 GB)
+
+_No ranked results in this tier yet._
+
+#### qwen3.8-27b / high-end (32 GB)
+
+| # | Quantization | Contributor | Hardware | tok/s | TTFT s | Context Window | KV cache | Date | Comment |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | UD-Q4_K_XL | TensorNom4d | NVIDIA GeForce RTX 5090 (32 GB) | 63.9 | 73 | 240000 | q8_0 | 2026-08-23 | PCIE 3.0 |
+
+#### qwen3.8-27b / time-traveler (>32 GB)
+
+_No ranked results in this tier yet._
+
+#### qwen3.8-27b / unranked (does not match a pinned tier recipe)
+
+| Contributor | Quantization | Hardware | tok/s | TTFT s | Context Window | KV cache | Settings | Why unranked | Date | Comment |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TensorNom4d | UD-Q4_K_M | NVIDIA GeForce RTX 5090 (32 GB) | 82.7 | 34.5 | 128000 | q4_0 | context_length=128000, flash_attn=1, kv_cache_quant=q4_0, mtp_enabled=true, n_gpu_layers=999, prompt_tokens=75000, +1 more | high-end: file='Qwen3.8-27B-UD-Q4_K_M.gguf' (pinned 'Qwen3.8-27B-UD-Q4_K_XL.gguf'), quantization='UD-Q4_K_M' (pinned 'UD-Q4_K_XL') … | 2026-08-23 | PCIE 3.0 |
+
+### Top contributors
+
+1 pt per live result · +2 one-time for the first submission on a given GPU within a tier (VRAM pin); superseded results score no points.
+
+| # | Contributor | Points | Results | Unique GPUs |
+| --- | --- | --- | --- | --- |
+| 1 | TensorNom4d | 4 | 2 | 1 |
 
 <!-- leaderboard:end -->
 
