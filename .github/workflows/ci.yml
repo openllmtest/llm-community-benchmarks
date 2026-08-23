@@ -1,0 +1,155 @@
+name: results-ci
+
+on:
+  pull_request:
+    paths:
+      - "benchmarks/**"
+      - "config/**"
+      - "schema/**"
+      - "scripts/**"
+  push:
+    branches: [main, master]
+    paths:
+      - "benchmarks/**"
+      - "config/**"
+      - "schema/**"
+      - "scripts/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: results-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------- validate --
+  # PRs: enforce the append-only rule + schema-check every added result file.
+  # Pushes to main/master: full re-validation of everything (safety net).
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate added results (PR mode)
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DIFF_URL: ${{ github.event.pull_request.diff_url }}
+        run: |
+          set -e
+          curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" "${DIFF_URL}" -o pr.diff
+          python scripts/validate_results.py --root . --check-additions --diff-file pr.diff
+
+      - name: Validate all results (push mode)
+        if: github.event_name != 'pull_request'
+        run: |
+          set -e
+          python scripts/validate_results.py --root .
+
+  # -------------------------------------------------------- preview-leaderboard --
+  # On PRs, show contributors the leaderboard with their run included so they can
+  # see where it ranks before merging. Updates a single bot comment per ref.
+  preview-leaderboard:
+    needs: validate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate preview leaderboard from PR head
+        id: gen
+        run: |
+          set -e
+          # Non-fatal: a mis-configured type shouldn't block the comment, but we still show it.
+          python scripts/generate_leaderboard.py --root . -o /tmp/leaderboard-preview.md || true
+          echo "done" >> "$GITHUB_OUTPUT"
+
+      - name: Post / update preview comment
+        if: steps.gen.concluded == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/leaderboard-preview.md', 'utf8');
+            const marker = '<!-- leaderboard-preview:${{ github.ref_name }} -->';
+            const header = [
+              '## 📊 Leaderboard preview (includes your unmerged run)',
+              '',
+              'This is how `LEADERBOARD.md` would look after this PR merges. It updates automatically as you push.',
+              '',
+              marker,
+              '',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: existing.id,
+                body: header + body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: header + body,
+              });
+            }
+
+  # ------------------------------------------------------------ publish-leaderboard --
+  # On merge to main/master, regenerate LEADERBOARD.md (and the README section) and
+  # commit them back if changed. Idempotent: a follow-up push finds no diff and
+  # stops, so there is no loop.
+  publish-leaderboard:
+    needs: validate
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Regenerate and commit leaderboard (+ README section)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -e
+          # Re-validate fully before publishing, then regenerate.
+          python scripts/validate_results.py --root .
+          python scripts/generate_leaderboard.py --root .
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -z "$(git status --porcelain -- LEADERBOARD.md README.md)" ]; then
+            echo "leaderboard unchanged, nothing to publish."
+            exit 0
+          fi
+
+          git add LEADERBOARD.md README.md
+          git commit -m "chore: regenerate leaderboard + README section (push ${{ github.sha }} by @${{ github.actor }})"
+          git pull --rebase origin "$BRANCH" || echo "rebase no-op/failed, continuing with local state"
+          git push origin "HEAD:$BRANCH"

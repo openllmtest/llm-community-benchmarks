@@ -1,0 +1,86 @@
+{
+  "inference-speed": {
+    "title": "Inference speed",
+    "description": "Single-stream decode throughput on local hardware (llama-server + the model group's pinned probe). One pinned recipe per VRAM tier; rows are ranked within a tier, everything else is listed unranked. Protocol: benchmarks/inference-speed/PROTOCOL.md",
+    "primary_metric": "token_generation_tps",
+    "metrics": [
+      { "key": "token_generation_tps", "header": "tok/s" },
+      { "key": "ttft_s", "header": "TTFT s" }
+    ],
+    "settings_columns": [
+      { "key": "n_gpu_layers", "header": "ngl" },
+      { "key": "context_length", "header": "Ctx" },
+      { "key": "kv_cache_quant", "header": "KV cache" },
+      { "key": "mtp_enabled", "header": "MTP" }
+    ],
+    "tiers": [
+      { "name": "low-end", "vram_gb": 16 },
+      { "name": "med-end", "vram_gb": 24 },
+      { "name": "high-end", "vram_gb": 32 },
+      { "name": "time-traveler" }
+    ],
+    "models": {
+      "qwen3.8-27b": {
+        "model_repo": "unsloth/Qwen3.8-27B-GGUF",
+        "presets": {
+          "low-end": "Prompt_35_000_tkn.txt",
+          "med-end": "Prompt_75_000_tkn.txt",
+          "high-end": "Prompt_120_000_tkn.txt",
+          "time-traveler": "Prompt_120_000_tkn.txt"
+        },
+        "preset_tokens": {
+          "low-end": 35000,
+          "med-end": 75000,
+          "high-end": 120000,
+          "time-traveler": 120000
+        },
+        "recipes": {
+          "low-end": {
+            "file": "Qwen3.8-27B-UD-Q2_K_XL.gguf",
+            "quantization": "UD-Q2_K_XL",
+            "n_gpu_layers": 999,
+            "context_length": 64000,
+            "kv_cache_quant": "q4_0",
+            "mtp_enabled": true,
+            "spec_draft_n_max": 2,
+            "flash_attn": 1
+          },
+          "med-end": {
+            "file": "Qwen3.8-27B-UD-Q4_K_M.gguf",
+            "quantization": "UD-Q4_K_M",
+            "n_gpu_layers": 999,
+            "context_length": 128000,
+            "kv_cache_quant": "q4_0",
+            "mtp_enabled": true,
+            "spec_draft_n_max": 2,
+            "flash_attn": 1
+          },
+          "high-end": {
+            "file": "Qwen3.8-27B-UD-Q4_K_XL.gguf",
+            "quantization": "UD-Q4_K_XL",
+            "n_gpu_layers": 999,
+            "context_length": 240000,
+            "kv_cache_quant": "q8_0",
+            "mtp_enabled": true,
+            "spec_draft_n_max": 2,
+            "flash_attn": 1
+          },
+          "time-traveler": {
+            "file": "Qwen3.8-27B-Q8_0.gguf",
+            "quantization": "Q8_0",
+            "n_gpu_layers": 999,
+            "context_length": 262144,
+            "kv_cache_quant": "f16",
+            "mtp_enabled": true,
+            "spec_draft_n_max": 2,
+            "flash_attn": 1
+          }
+        }
+      }
+    },
+    "top_contributors": {
+      "per_result_points": 1,
+      "first_gpu_bonus": 2
+    }
+  }
+}

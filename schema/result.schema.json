@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/llm-community-benchmarks/schemas/result.schema.json",
+  "title": "Benchmark result",
+  "description": "Schema for one benchmark run contributed under benchmarks/{type}/{model}/results/<tier-or-unranked>/<result_id>.json (one subfolder per pinned VRAM tier plus unranked; types without tiers put files directly in results/). The file name must equal <result_id>.json. Results are append-only: never edit a merged file, add a new one with 'supersedes' instead.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "result_id",
+    "benchmark_type",
+    "model_family",
+    "contributor",
+    "date",
+    "tool",
+    "protocol_version",
+    "hardware",
+    "metrics"
+  ],
+  "properties": {
+    "result_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9.]+)*-[0-9a-f]{6}$",
+      "description": "Unique id, also the file name without extension. Format: <date>-<contributor>-<model_family>[-tag]-<suffix>, where <suffix> is 6 random lowercase hex characters (e.g. a1b2c3) so nobody has to check for collisions by hand. Example: 2026-08-15-alice-qwen3.8-27b-a1b2c3."
+    },
+    "benchmark_type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Must equal the top-level folder name under benchmarks/ (e.g. inference-speed)."
+    },
+    "model_family": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+([._-][a-z0-9]+)*$",
+      "description": "Canonical base model id, must equal the folder name under benchmarks/{type}/ (e.g. qwen3.8-27b). Quantization is NOT part of the folder."
+    },
+    "contributor": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9-]{0,38}$",
+      "description": "GitHub username of the person who ran the test."
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "Date the run was executed, YYYY-MM-DD."
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Tool used to run the benchmark, e.g. llama-bench."
+        },
+        "version": {
+          "type": "string",
+          "description": "Exact tool/build version or tag, e.g. b6500 for a llama.cpp build."
+        }
+      }
+    },
+    "protocol_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Version of the PROTOCOL.md followed for this benchmark type, e.g. 1.0."
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quantization"],
+      "properties": {
+        "quantization": {
+          "type": "string",
+          "description": "Quantization of the tested file, e.g. UD-Q4_K_XL."
+        },
+        "repo_id": {
+          "type": "string",
+          "description": "Where the model file came from, e.g. unsloth/Qwen3.8-27B-GGUF on Hugging Face."
+        },
+        "file": {
+          "type": "string",
+          "description": "Exact model file used, e.g. Qwen3.8-27B-UD-Q4_K_XL.gguf. Recommended for every run."
+        }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gpu"],
+      "properties": {
+        "cpu": {
+          "type": "string",
+          "description": "CPU model (optional - not used for ranking), e.g. AMD Ryzen 9 7950X."
+        },
+        "gpu": {
+          "oneOf": [{ "type": "string" }, { "type": "null" }],
+          "description": "GPU type (include VRAM) - the one required hardware fact, e.g. NVIDIA RTX 3090 (24 GB). null for CPU-only runs."
+        },
+        "ram_gb": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "System RAM in GiB/GB (optional - not used for ranking)."
+        },
+        "vram_gb": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "GPU VRAM in GB, recorded as the card's marketed class (a '32 GB' card that reports 31.9 counts as 32; unified memory on systems like the NVIDIA DGX Spark counts too; multi-GPU rigs: combined total). It decides which pinned tier this result can rank in (low-end = 16 / med-end = 24 / high-end = 32 / time-traveler > 32)."
+        },
+        "os": {
+          "type": "string",
+          "description": "Operating system and version, e.g. Windows 11 / Ubuntu 24.04."
+        }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "description": "Runtime settings relevant to comparability. Which keys are REQUIRED per benchmark type is defined by config/benchmark_types.json (inference-speed v1.0 requires: n_gpu_layers, context_length, kv_cache_quant, mtp_enabled; ranked rows must also reproduce their VRAM tier's pinned recipe, e.g. spec_draft_n_max + flash_attn for qwen3.8-27b). Record the values you ACTUALLY ran. `prompt_tokens` (nominal prompt size of the prompt preset in tokens) is recommended for inference-speed runs.",
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "number" },
+      "description": "Numeric metrics named by the PROTOCOL.md of the benchmark type. Only numbers, so results stay comparable and sortable."
+    },
+    "comment": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Short note about this run (conditions, caveats, why it differs). Shown in the Comment column of LEADERBOARD.md. Keep it short; longer text belongs in 'notes'."
+    },
+    "raw_output_file": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+\\.txt$",
+      "description": "Sibling file (<result_id>.raw.txt) containing the verbatim tool output, for auditability. Recommended for every result."
+    },
+    "supersedes": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9.]+)*-[0-9a-f]{6}$",
+      "description": "result_id of a previous (erroneous) run this one replaces (same format: lowercase segments plus the 6-char random suffix). The old file stays in the repo untouched and is excluded from leaderboards."
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Optional longer free text: ambient conditions, why this supersedes an earlier entry. Not shown as a leaderboard column."
+    }
+  }
+}

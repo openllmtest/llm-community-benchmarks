@@ -1,0 +1,24 @@
+# EXAMPLE: paste the complete, unedited output here. The server start lines (command + loaded model)
+# are followed by the full stdout of probe.py. Keep everything, no reformatting.
+
+llama-server build: b6500 (example)
+command: llama-server -m Qwen3.8-27B-UD-Q4_K_M.gguf -c 128000 -ngl 999 -fa 1 \
+  --cache-type-k q4_0 --cache-type-v q4_0 --spec-type draft-mtp --spec-draft-n-max 2 \
+  --parallel 1 --host 127.0.0.1 --port 8080
+model loaded: Qwen3.8-27B-UD-Q4_K_M.gguf (CUDA, ngl=999, spec=draft-mtp)
+server is listening on http://127.0.0.1:8080
+
+--- probe.py output ---
+preset: Prompt_75_000_tkn.txt (302910 chars)
+
+run 1/3 | tokens 400 | TTFT 78.2 s | decode 25.8 tok/s
+answer preview: I will analyze each snippet in order and complete the requested tasks. Starting with Snippet 1, which contains a Kademlia DHT node implementation; its core purpose is to manage local storage and ...
+
+run 2/3 | tokens 400 | TTFT 74.3 s | decode 24.6 tok/s
+answer preview: Based on the provided snippets, below is my analysis followed by happy-path unit tests for each snippet with executable assertions ...
+
+run 3/3 | tokens 400 | TTFT 71.5 s | decode 23.9 tok/s
+answer preview: I'll process the snippets sequentially. Snippet 1 (Kademlia node) manages storage entries and routing operations; summary of its functionality: ...
+
+OVERALL (3 measured runs): median decode 24.6 tok/s · mean 24.8 | median TTFT 74.3 s
+Record the MEDIAN DECODE as metrics.token_generation_tps and the MEDIAN TTFT as metrics.ttft_s.
