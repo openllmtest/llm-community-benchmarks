@@ -8,10 +8,10 @@ only when the content actually changes.
 Rules implemented here (also documented in CONTRIBUTING.md):
   * one section per benchmark type configured in config/benchmark_types.json,
     with a sub-table per model family
-  * for tiered types each model gets one table PER VRAM TIER: only rows that
-    snap to a tier's pinned VRAM value AND reproduce its pinned recipe exactly
-    are ranked (by the type's primary metric); every other row is still shown, on a
-    separate "unranked" table with the reason it does not rank
+  * for tiered types each model gets one numbered table PER VRAM TIER (T1..Tn in
+    config order): only rows that snap to a tier's pinned VRAM value AND reproduce
+    its pinned recipe exactly are ranked (by the type's primary metric); every other
+    row is still shown, in a separate "unranked" table with the exact same columns
   * types without "tiers" fall back to one flat per-model table ranked by the
     type's primary metric, with the configured settings/metric columns
   * tables are upsert-style: within a tier only each contributor's latest run
@@ -105,25 +105,6 @@ def hardware_cell(h):
         return gpu
     cpu = h.get("cpu") or ""
     return "CPU only%s" % ((" (%s)" % cpu) if cpu else "")
-
-
-def settings_summary(settings, limit=6):
-    """Compact 'key=value' list for the unranked table's Settings column."""
-    items = []
-    for k in sorted((settings or {}).keys()):
-        v = (settings or {})[k]
-        if isinstance(v, bool):
-            items.append("%s=%s" % (k, "true" if v else "false"))
-        elif is_rankable(v):
-            items.append("%s=%g" % (k, v))
-        else:
-            items.append("%s=%s" % (k, md_escape(str(v))))
-    if not items:
-        return ""
-    extra = len(items) - limit
-    if extra > 0:
-        items = items[:limit] + ["+%d more" % extra]
-    return ", ".join(items)
 
 
 def comment_cell(comment, limit=80):
@@ -364,11 +345,11 @@ def render_type(tname, live_entries, config_entry):
         unranked = [e for e in entries if not (tiers and e["_band"])]
 
         if tiers:
-            for t in tiers:  # fixed config order, low-end first; every tier gets its own table
+            for ti, t in enumerate(tiers):  # fixed config order; T1..Tn label the tables
                 rows = upsert([e for e in ranked if e["_band"] == t["name"]],
                               lambda e: str(e["data"].get("contributor", "?")).lower())
                 rows = sorted(rows, key=lambda e: rank_key(e, primary))
-                lines.append("### %s / %s (%s)" % (md_escape(model), md_escape(t["name"]), band_label(t, tiers)))
+                lines.append("### %s / T%d - %s (%s)" % (md_escape(model), ti + 1, md_escape(t["name"]), band_label(t, tiers)))
                 lines.append("")
                 if not rows:
                     lines.append("_No ranked results in this tier yet._")
@@ -394,22 +375,24 @@ def render_type(tname, live_entries, config_entry):
                 lines.append("")
 
             if unranked:
+                # Same columns as the ranked tier tables, nothing else: the section
+                # title tells the story and no rank is assigned (empty "#" cell).
                 rows = sorted(upsert(unranked, condition_key), key=lambda e: rank_key(e, primary))
-                lines.append("### %s / unranked (does not match a pinned tier recipe)" % md_escape(model))
+                lines.append("### %s / unranked" % md_escape(model))
                 lines.append("")
-                header = ["Contributor", "Quantization", "Hardware"] + [m["header"] for m in mdefs] \
-                    + ["Context Window", "KV cache", "Settings", "Why unranked", "Date", "Comment"]
+                header = ["#", "Quantization", "Contributor", "Hardware"] + [m["header"] for m in mdefs] \
+                    + ["Context Window", "KV cache", "Date", "Comment"]
                 lines.append("| " + " | ".join(header) + " |")
                 lines.append("|" + "|".join([" --- "] * len(header)) + "|")
                 for e in rows:
                     d = e["data"]
                     m = d.get("metrics") or {}
-                    row = [md_escape(d.get("contributor", "?")),
+                    row = ["",
                            md_escape((d.get("variant") or {}).get("quantization", "")),
+                           md_escape(d.get("contributor", "?")),
                            md_escape(hardware_cell(d.get("hardware") or {}))] \
                          + [fmt_num(m.get(x["key"])) for x in mdefs] \
-                         + [ctx_cell(d), kv_cell(d), settings_summary(d.get("settings")), md_escape(e["_reason"]),
-                            d.get("date", ""), comment_cell(d.get("comment"))]
+                         + [ctx_cell(d), kv_cell(d), d.get("date", ""), comment_cell(d.get("comment"))]
                     lines.append("| " + " | ".join(row) + " |")
                 lines.append("")
         else:

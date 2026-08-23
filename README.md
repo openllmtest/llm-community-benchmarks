@@ -9,29 +9,29 @@ Community-collected benchmark results for **local** LLM inference. Everyone runs
 
 Single-stream decode throughput on local hardware (llama-server + the model group's pinned probe). One pinned recipe per VRAM tier; rows are ranked within a tier, everything else is listed unranked. Protocol: benchmarks/inference-speed/PROTOCOL.md
 
-#### qwen3.8-27b / low-end (16 GB)
+#### qwen3.8-27b / T1 - low-end (16 GB)
 
 _No ranked results in this tier yet._
 
-#### qwen3.8-27b / med-end (24 GB)
+#### qwen3.8-27b / T2 - med-end (24 GB)
 
 _No ranked results in this tier yet._
 
-#### qwen3.8-27b / high-end (32 GB)
+#### qwen3.8-27b / T3 - high-end (32 GB)
 
 | # | Quantization | Contributor | Hardware | tok/s | TTFT s | Context Window | KV cache | Date | Comment |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | UD-Q4_K_XL | TensorNom4d | NVIDIA GeForce RTX 5090 (32 GB) | 63.9 | 73 | 240000 | q8_0 | 2026-08-23 | PCIE 3.0 |
 
-#### qwen3.8-27b / time-traveler (>32 GB)
+#### qwen3.8-27b / T4 - time-traveler (>32 GB)
 
 _No ranked results in this tier yet._
 
-#### qwen3.8-27b / unranked (does not match a pinned tier recipe)
+#### qwen3.8-27b / unranked
 
-| Contributor | Quantization | Hardware | tok/s | TTFT s | Context Window | KV cache | Settings | Why unranked | Date | Comment |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TensorNom4d | UD-Q4_K_M | NVIDIA GeForce RTX 5090 (32 GB) | 82.7 | 34.5 | 128000 | q4_0 | context_length=128000, flash_attn=1, kv_cache_quant=q4_0, mtp_enabled=true, n_gpu_layers=999, prompt_tokens=75000, +1 more | high-end: file='Qwen3.8-27B-UD-Q4_K_M.gguf' (pinned 'Qwen3.8-27B-UD-Q4_K_XL.gguf'), quantization='UD-Q4_K_M' (pinned 'UD-Q4_K_XL') … | 2026-08-23 | PCIE 3.0 |
+| # | Quantization | Contributor | Hardware | tok/s | TTFT s | Context Window | KV cache | Date | Comment |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|  | UD-Q4_K_M | TensorNom4d | NVIDIA GeForce RTX 5090 (32 GB) | 82.7 | 34.5 | 128000 | q4_0 | 2026-08-23 | PCIE 3.0 |
 
 ### Top contributors
 
@@ -102,7 +102,7 @@ Everything below is what `run_benchmark.py` does under the hood; a hand-made res
 5. **Write your result file.** Copy [an example](benchmarks/inference-speed/examples/) into the tier subfolder for your run, e.g. `benchmarks/inference-speed/qwen3.8-27b/results/high-end/<result_id>.json` (or `results/unranked/` when the run does not match a pinned tier). The id is lowercase letters, digits, dots and hyphens and **must end with a 6-character random suffix** so ids stay unique without coordination (see the pattern in [`schema/result.schema.json`](schema/result.schema.json)); the filename must equal the id. Fill in *every* field from your actual run (hardware as-is, settings exactly as pinned, metrics from step 4); [CONTRIBUTING.md](CONTRIBUTING.md) explains each field.
 6. **Save the raw log** next to it as `<result_id>.raw.txt`: the verbatim probe output plus the server's startup lines.
 7. **Validate locally:** `python scripts/validate_results.py` must print `OK`.
-8. **Open a PR** with both files; CI re-validates and previews your leaderboard row (ranked, or unranked with the reason shown).
+8. **Open a PR** with both files; CI re-validates and previews your leaderboard row (ranked, or listed under *unranked*).
 
 ## Layout
 

@@ -12,21 +12,38 @@ The leaderboard ranks rows **within a VRAM tier** (rows are comparable only agai
 
 ## Pinned recipes per VRAM tier
 
-VRAM tiers for this type are defined in [`config/benchmark_types.json`](../../config/benchmark_types.json). Each tier pins one **marketed VRAM value**:
+VRAM tiers for this type are defined in [`config/benchmark_types.json`](../../config/benchmark_types.json). Four tiers, numbered **T1** to **T4**, each pinned to one **marketed VRAM value**; going up a tier always means better quantization, longer context and less-quantized KV cache. Test conditions per tier (current model group: `qwen3.8-27b`; its [README](qwen3.8-27b/README.md#exact-commands) carries the exact server commands):
 
-| Tier | Pinned VRAM (GB) |
-|---|---|
-| low-end | 16 |
-| med-end | 24 |
-| high-end | 32 |
-| time-traveler | above 32: workstations / multi-GPU rigs (record your total usable VRAM, e.g. dual RTX 5090 = 64; unified memory such as the NVIDIA DGX Spark) |
+**T1 - low-end / 16 GB.** Entry class for this model on consumer cards (e.g. RTX 4080, RTX 4060 Ti with 16 GB): the best quantization that still fits in 16 GB including KV cache headroom.
+- Model file: `Qwen3.8-27B-UD-Q2_K_XL.gguf` (quantization `UD-Q2_K_XL`)
+- Context size (`-c`): 64000
+- KV cache quantization: `q4_0` / `q4_0`
+- Test prompt: [`Prompt_35_000_tkn.txt`](test-data/Prompt_35_000_tkn.txt) (~35k tokens, half of the context window)
+
+**T2 - med-end / 24 GB.** Previous top consumer class (e.g. RTX 3090, RTX 4090): a clearly better quantization and double T1's context window.
+- Model file: `Qwen3.8-27B-UD-Q4_K_M.gguf` (quantization `UD-Q4_K_M`)
+- Context size (`-c`): 128000
+- KV cache quantization: `q4_0` / `q4_0`
+- Test prompt: [`Prompt_75_000_tkn.txt`](test-data/Prompt_75_000_tkn.txt) (~75k tokens)
+
+**T3 - high-end / 32 GB.** Current top consumer class (e.g. RTX 5090): near-lossless quantization, a very large context window and an almost unquantized KV cache.
+- Model file: `Qwen3.8-27B-UD-Q4_K_XL.gguf` (quantization `UD-Q4_K_XL`)
+- Context size (`-c`): 240000
+- KV cache quantization: `q8_0` / `q8_0`
+- Test prompt: [`Prompt_120_000_tkn.txt`](test-data/Prompt_120_000_tkn.txt) (~120k tokens, half of the context window)
+
+**T4 - time-traveler / above 32 GB.** Beyond consumer cards: workstations (e.g. a single 48 GB card), multi-GPU rigs (record your total usable VRAM, e.g. dual RTX 5090 = 64), or unified memory such as the NVIDIA DGX Spark; full precision with no quantization anywhere in the pipeline.
+- Model file: `Qwen3.8-27B-Q8_0.gguf` (quantization `Q8_0`)
+- Context size (`-c`): 262144 (model maximum)
+- KV cache quantization: `f16` / `f16` (no quantization)
+- Test prompt: [`Prompt_120_000_tkn.txt`](test-data/Prompt_120_000_tkn.txt) (~120k tokens, about half of the context window)
 
 Record `hardware.vram_gb` as the card's **marketed** size: a "32 GB" card that reports 31.9 counts as 32; validation snaps it. Sizes between pins, or below 16, still validate and are listed *unranked*.
 
 Your model group's `README.md` pins one complete condition per tier: model file + quantization, context length, KV cache quantization, offload depth, flash attention, MTP flags and the preset prompt file; see the table in [`qwen3.8-27b/README.md`](qwen3.8-27b/README.md). **Run your tier's row exactly.** That is what makes rows within a tier apples-to-apples comparable.
 
 - A result is *ranked* only when `hardware.vram_gb` snaps to a tier's pinned VRAM value (**above the highest pin ranks as `time-traveler`**) **and** it reproduces every pinned value (the settings plus `variant.file` / `quantization`).
-- Deviating does not invalidate your run: CI still accepts the file, but the leaderboard lists it under *unranked* with the reason shown. If a pinned recipe is wrong for that hardware class (OOMs, file missing on Hugging Face…), fix the table via issue + PR to the model's README and config; do not improvise per run.
+- Deviating does not invalidate your run: CI still accepts the file, but the leaderboard lists it under *unranked*. If a pinned recipe is wrong for that hardware class (OOMs, file missing on Hugging Face…), fix the table via issue + PR to the model's README and config; do not improvise per run.
 
 ## How to measure
 
@@ -78,6 +95,6 @@ Also recommended for every run: `variant.file` (the exact GGUF), `hardware.vram_
    python scripts/validate_results.py
    ```
 
-5. Open a pull request; CI re-runs validation and comments with a leaderboard preview showing where you'd rank (or why you'd be unranked).
+5. Open a pull request; CI re-runs validation and comments with a leaderboard preview showing where you'd rank (or that your run lands in the *unranked* section).
 
 See [CONTRIBUTING.md](../../CONTRIBUTING.md) for the field-by-field reference.
