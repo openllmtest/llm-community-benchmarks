@@ -74,7 +74,6 @@ jobs:
           set -e
           # Non-fatal: a mis-configured type shouldn't block the comment, but we still show it.
           python scripts/generate_leaderboard.py --root . -o /tmp/leaderboard-preview.md || true
-          echo "done" >> "$GITHUB_OUTPUT"
 
       - name: Post / update preview comment
         if: steps.gen.concluded == 'success'

@@ -1,0 +1,36 @@
+{
+  "result_id": "2026-08-23-tensornom4d-qwen3.8-27b-204ff1",
+  "benchmark_type": "inference-speed",
+  "model_family": "qwen3.8-27b",
+  "contributor": "TensorNom4d",
+  "date": "2026-08-23",
+  "tool": {
+    "name": "llama-server + qwen3.8-27b/probe.py",
+    "version": "b10582"
+  },
+  "protocol_version": "1.0",
+  "variant": {
+    "quantization": "UD-Q4_K_XL",
+    "file": "Qwen3.8-27B-UD-Q4_K_XL.gguf",
+    "repo_id": "unsloth/Qwen3.8-27B-GGUF"
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 5090 (32 GB)",
+    "vram_gb": 32
+  },
+  "settings": {
+    "n_gpu_layers": 999,
+    "context_length": 240000,
+    "kv_cache_quant": "q8_0",
+    "mtp_enabled": true,
+    "spec_draft_n_max": 2,
+    "flash_attn": 1,
+    "prompt_tokens": 120000
+  },
+  "metrics": {
+    "token_generation_tps": 63.9,
+    "ttft_s": 73.0
+  },
+  "comment": "PCIE 3.0",
+  "raw_output_file": "2026-08-23-tensornom4d-qwen3.8-27b-204ff1.raw.txt"
+}
