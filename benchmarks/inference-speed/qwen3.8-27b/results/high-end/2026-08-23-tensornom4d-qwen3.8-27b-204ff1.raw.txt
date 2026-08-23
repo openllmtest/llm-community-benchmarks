@@ -1,0 +1,28 @@
+llama-server build: version: 0.2.0-dev (build 10582, commit e85caa81e)
+command: C:\Users\jazdz\Desktop\llm-community-benchmarks\tools\llama.cpp\llama-server.exe -m C:\Users\jazdz\Desktop\llm-community-benchmarks\tools\models\Qwen3.8-27B-UD-Q4_K_XL.gguf -c 240000 -ngl 999 -fa 1 --cache-type-k q8_0 --cache-type-v q8_0 --spec-type draft-mtp --spec-draft-n-max 2 --no-cache-prompt --parallel 1 --host 127.0.0.1 --port 8080
+
+0.00.126.591 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.218.521 W srv  llama_server: -----------------
+0.00.218.529 W srv  llama_server: CORS is set to allow all origins ('*') and no API key is set
+0.00.218.529 W srv  llama_server: this can be a security risk (cross-origin attacks)
+0.00.218.530 W srv  llama_server: more info: https://github.com/ggml-org/llama.cpp/pull/25655
+0.00.218.530 W srv  llama_server: -----------------
+0.00.221.975 I srv    load_model: loading model 'C:\Users\jazdz\Desktop\llm-community-benchmarks\tools\models\Qwen3.8-27B-UD-Q4_K_XL.gguf'
+0.13.672.454 I cmn          init: llama threadpool init, n_threads = 16
+0.13.780.657 I common_speculative_init_result: creating MTP draft context against the target model 'C:\Users\jazdz\Desktop\llm-community-benchmarks\tools\models\Qwen3.8-27B-UD-Q4_K_XL.gguf'
+0.13.886.724 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 240128, kv_unified = 'false'
+0.13.993.291 I srv          init: chat template supports preserving reasoning, consider enabling it via --reasoning-preserve
+0.13.993.324 I srv  llama_server: model loaded
+0.13.993.328 I srv  llama_server: listening on http://127.0.0.1:8080
+
+--- probe.py output ---
+preset: Prompt_120_000_tkn.txt (477629 chars)
+
+run 1/3 | tokens 400 | TTFT 72.4 s | decode 62.5 tok/s
+answer preview: # Deep Code Analysis, Functional Summary, and Unit Testing ## Snippet 1: Kademlia DHT Implementation (Java) ### 1. Deep Code Analysis **Logical Intent:** This snippet defines the core components of a Kademlia Distributed Hash Table (DHT) no ...
+run 2/3 | tokens 400 | TTFT 73.0 s | decode 63.9 tok/s
+answer preview: ### Snippet 1 Analysis **1. Deep Code Analysis** The snippet provided is a fragment of a Java implementation for a Kademlia Distributed Hash Table (DHT) node. Specifically, it defines the `JKademliaNode` class (partially) and includes the s ...
+run 3/3 | tokens 400 | TTFT 73.1 s | decode 66.5 tok/s
+answer preview: ### Snippet 1 Analysis **1. Deep Code Analysis** The snippet provided is a partial view of a Java application implementing a Kademlia Distributed Hash Table (DHT) node. The `input` field contains the beginning of `JKademliaNode`, and the `c ...
+OVERALL (3 measured runs): median decode 63.9 tok/s · mean 64.3 | median TTFT 73.0 s
+Record the MEDIAN DECODE as metrics.token_generation_tps and the MEDIAN TTFT as metrics.ttft_s.
