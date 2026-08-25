@@ -10,12 +10,49 @@ The general rules live in [the protocol](../PROTOCOL.md); every run is still one
 
 Source of all files: [unsloth/Qwen3.8-27B-GGUF](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF). Record the exact file you used in `variant.file`. Verify current availability on the repo page before downloading.
 
-| Tier | Available GPU VRAM  | Model file (record as quantization) | Ctx window size (`-c`) | KV cache quantization (`--cache-type-k/v`) | Test prompt size |
-|---|---|---|---|---|---|
-| **T1 - low-end** | 16 GB | [`Qwen3.8-27B-UD-Q2_K_XL.gguf`](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF/resolve/main/Qwen3.8-27B-UD-Q2_K_XL.gguf) (`UD-Q2_K_XL`) | 64000 (64k) | `q4_0` / `q4_0` | [`Prompt_35_000_tkn.txt`](../test-data/Prompt_35_000_tkn.txt) (~35k tok = half of ctx) |
-| **T2 - med-end** | 24 GB | [`Qwen3.8-27B-UD-Q4_K_M.gguf`](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF/resolve/main/Qwen3.8-27B-UD-Q4_K_M.gguf) (`UD-Q4_K_M`) | 128000 (128k) | `q4_0` / `q4_0` | [`Prompt_75_000_tkn.txt`](../test-data/Prompt_75_000_tkn.txt) (~75k tok) |
-| **T3 - high-end** | 32 GB | [`Qwen3.8-27B-UD-Q4_K_XL.gguf`](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF/resolve/main/Qwen3.8-27B-UD-Q4_K_XL.gguf) (`UD-Q4_K_XL`) | 240000 | `q8_0` / `q8_0` | [`Prompt_120_000_tkn.txt`](../test-data/Prompt_120_000_tkn.txt) (~120k tok = half of ctx) |
-| **T4 - time-traveler** | > 32 GB (anything beyond consumer cards: workstations / multi-GPU rigs; record total usable `vram_gb`, e.g. dual RTX 5090s = 64; unified memory such as the NVIDIA DGX Spark) | [`Qwen3.8-27B-Q8_0.gguf`](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF/resolve/main/Qwen3.8-27B-Q8_0.gguf) (`Q8_0`) | 262144 (model max) | `f16` / `f16` (no quant) | [`Prompt_120_000_tkn.txt`](../test-data/Prompt_120_000_tkn.txt) (~120k tok ≈ half of ctx) |
+<table>
+<thead><tr>
+<th nowrap>Tier</th>
+<th nowrap>VRAM</th>
+<th nowrap>Model file</th>
+<th nowrap>Ctx</th>
+<th nowrap>KV cache</th>
+<th nowrap>Prompt</th>
+</tr></thead>
+<tbody>
+<tr>
+<td nowrap>T1 - low-end</td>
+<td nowrap>16 GB</td>
+<td nowrap><a href="https://huggingface.co/unsloth/Qwen3.8-27B-GGUF/resolve/main/Qwen3.8-27B-UD-Q2_K_XL.gguf">Qwen3.8-27B-UD-Q2_K_XL.gguf</a> (UD-Q2_K_XL)</td>
+<td nowrap>64000</td>
+<td nowrap>q4_0 / q4_0</td>
+<td nowrap><a href="../test-data/Prompt_35_000_tkn.txt">Prompt_35_000_tkn.txt</a> (~35k)</td>
+</tr>
+<tr>
+<td nowrap>T2 - med-end</td>
+<td nowrap>24 GB</td>
+<td nowrap><a href="https://huggingface.co/unsloth/Qwen3.8-27B-GGUF/resolve/main/Qwen3.8-27B-UD-Q4_K_M.gguf">Qwen3.8-27B-UD-Q4_K_M.gguf</a> (UD-Q4_K_M)</td>
+<td nowrap>128000</td>
+<td nowrap>q4_0 / q4_0</td>
+<td nowrap><a href="../test-data/Prompt_75_000_tkn.txt">Prompt_75_000_tkn.txt</a> (~75k)</td>
+</tr>
+<tr>
+<td nowrap>T3 - high-end</td>
+<td nowrap>32 GB</td>
+<td nowrap><a href="https://huggingface.co/unsloth/Qwen3.8-27B-GGUF/resolve/main/Qwen3.8-27B-UD-Q4_K_XL.gguf">Qwen3.8-27B-UD-Q4_K_XL.gguf</a> (UD-Q4_K_XL)</td>
+<td nowrap>240000</td>
+<td nowrap>q8_0 / q8_0</td>
+<td nowrap><a href="../test-data/Prompt_120_000_tkn.txt">Prompt_120_000_tkn.txt</a> (~120k)</td>
+</tr>
+<tr>
+<td nowrap>T4 - time-traveler</td>
+<td nowrap>&gt; 32 GB</td>
+<td nowrap><a href="https://huggingface.co/unsloth/Qwen3.8-27B-GGUF/resolve/main/Qwen3.8-27B-Q8_0.gguf">Qwen3.8-27B-Q8_0.gguf</a> (Q8_0)</td>
+<td nowrap>262144</td>
+<td nowrap>f16 / f16</td>
+<td nowrap><a href="../test-data/Prompt_120_000_tkn.txt">Prompt_120_000_tkn.txt</a> (~120k)</td>
+</tr>
+</tbody></table>
 
 Context windows are sized from the tier's model file + KV cache against its pinned VRAM value, so a card of that size runs close to, but never past, its limit: low-end measured at ≈ 15.7 GB in use on the 16 GB card, high-end ≈ 31.2 GB on 32 GB; time-traveler reserves KV for the full 262k window (≈ 45 GB, comfortable from 64 up).
 

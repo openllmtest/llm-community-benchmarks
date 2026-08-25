@@ -19,33 +19,153 @@ _No ranked results in this tier yet._
 
 #### qwen3.8-27b / T3 - high-end (32 GB)
 
-| # | Quantization | Contributor | Hardware | tok/s | TTFT s | Context Window | KV cache | Date | Comment |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | UD-Q4_K_XL | lasq88 | NVIDIA GeForce RTX 5090 (32 GB) | 70.6 | 69.3 | 240000 | q8_0 | 2026-08-25 |  |
-| 2 | UD-Q4_K_XL | TensorNom4d | NVIDIA GeForce RTX 5090 (32 GB) | 63.9 | 73 | 240000 | q8_0 | 2026-08-23 | PCIE 3.0 |
+<table>
+<thead><tr>
+<th nowrap>#</th>
+<th nowrap>Quant</th>
+<th nowrap>Contributor</th>
+<th nowrap>Hardware</th>
+<th nowrap>tok/s</th>
+<th nowrap>TTFT s</th>
+<th nowrap>Ctx</th>
+<th nowrap>KV</th>
+<th nowrap>Date</th>
+<th nowrap>Comment</th>
+</tr></thead>
+<tbody>
+<tr>
+<td nowrap>1</td>
+<td nowrap>UD-Q4_K_XL</td>
+<td nowrap>lasq88</td>
+<td nowrap>NVIDIA GeForce RTX 5090 (32 GB)</td>
+<td nowrap>70.6</td>
+<td nowrap>69.3</td>
+<td nowrap>240000</td>
+<td nowrap>q8_0</td>
+<td nowrap>2026-08-25</td>
+<td nowrap></td>
+</tr>
+<tr>
+<td nowrap>2</td>
+<td nowrap>UD-Q4_K_XL</td>
+<td nowrap>TensorNom4d</td>
+<td nowrap>NVIDIA GeForce RTX 5090 (32 GB)</td>
+<td nowrap>63.9</td>
+<td nowrap>73</td>
+<td nowrap>240000</td>
+<td nowrap>q8_0</td>
+<td nowrap>2026-08-23</td>
+<td nowrap>PCIE 3.0</td>
+</tr>
+</tbody></table>
 
 #### qwen3.8-27b / T4 - time-traveler (>32 GB)
 
-| # | Quantization | Contributor | Hardware | tok/s | TTFT s | Context Window | KV cache | Date | Comment |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Q8_0 | emancypage | NVIDIA GB10 (128 GB unified memory) | 9 | 627.6 | 262144 | f16 | 2026-08-24 | NVIDIA GB10 unified memory; Vulkan arm64 llama.cpp build b10612 (no Linux ARM64… |
+<table>
+<thead><tr>
+<th nowrap>#</th>
+<th nowrap>Quant</th>
+<th nowrap>Contributor</th>
+<th nowrap>Hardware</th>
+<th nowrap>tok/s</th>
+<th nowrap>TTFT s</th>
+<th nowrap>Ctx</th>
+<th nowrap>KV</th>
+<th nowrap>Date</th>
+<th nowrap>Comment</th>
+</tr></thead>
+<tbody>
+<tr>
+<td nowrap>1</td>
+<td nowrap>Q8_0</td>
+<td nowrap>emancypage</td>
+<td nowrap>NVIDIA GB10 (128 GB unified memory)</td>
+<td nowrap>9</td>
+<td nowrap>627.6</td>
+<td nowrap>262144</td>
+<td nowrap>f16</td>
+<td nowrap>2026-08-24</td>
+<td nowrap>NVIDIA GB10 unified memory; Vulkan arm64…</td>
+</tr>
+</tbody></table>
 
 #### qwen3.8-27b / unranked
 
-| # | Quantization | Contributor | Hardware | tok/s | TTFT s | Context Window | KV cache | Date | Comment |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  | UD-Q4_K_M | TensorNom4d | NVIDIA GeForce RTX 5090 (32 GB) | 82.7 | 34.5 | 128000 | q4_0 | 2026-08-23 | PCIE 3.0 |
-|  | NVFP4 | emancypage | NVIDIA GB10 (128 GB unified memory) | 7.9 | 0.7 | 262144 | fp8_e4m3 | 2026-08-24 | Default GX10 SGLang NVFP4+DFlash2; runs 2-3 reused the 120k-token prefix cache,… |
+<table>
+<thead><tr>
+<th nowrap>#</th>
+<th nowrap>Quant</th>
+<th nowrap>Contributor</th>
+<th nowrap>Hardware</th>
+<th nowrap>tok/s</th>
+<th nowrap>TTFT s</th>
+<th nowrap>Ctx</th>
+<th nowrap>KV</th>
+<th nowrap>Date</th>
+<th nowrap>Comment</th>
+</tr></thead>
+<tbody>
+<tr>
+<td nowrap></td>
+<td nowrap>UD-Q4_K_M</td>
+<td nowrap>TensorNom4d</td>
+<td nowrap>NVIDIA GeForce RTX 5090 (32 GB)</td>
+<td nowrap>82.7</td>
+<td nowrap>34.5</td>
+<td nowrap>128000</td>
+<td nowrap>q4_0</td>
+<td nowrap>2026-08-23</td>
+<td nowrap>PCIE 3.0</td>
+</tr>
+<tr>
+<td nowrap></td>
+<td nowrap>NVFP4</td>
+<td nowrap>emancypage</td>
+<td nowrap>NVIDIA GB10 (128 GB unified memory)</td>
+<td nowrap>7.9</td>
+<td nowrap>0.7</td>
+<td nowrap>262144</td>
+<td nowrap>fp8_e4m3</td>
+<td nowrap>2026-08-24</td>
+<td nowrap>Default GX10 SGLang NVFP4+DFlash2; runs 2-3…</td>
+</tr>
+</tbody></table>
 
 ### Top contributors
 
 1 pt per live result · +2 one-time for the first submission on a given GPU within a tier (VRAM pin); superseded results score no points.
 
-| # | Contributor | Points | Results | Unique GPUs |
-| --- | --- | --- | --- | --- |
-| 1 | emancypage | 4 | 2 | 1 |
-| 2 | TensorNom4d | 4 | 2 | 1 |
-| 3 | lasq88 | 1 | 1 | 1 |
+<table>
+<thead><tr>
+<th nowrap>#</th>
+<th nowrap>Contributor</th>
+<th nowrap>Points</th>
+<th nowrap>Results</th>
+<th nowrap>Unique GPUs</th>
+</tr></thead>
+<tbody>
+<tr>
+<td nowrap>1</td>
+<td nowrap>emancypage</td>
+<td nowrap>4</td>
+<td nowrap>2</td>
+<td nowrap>1</td>
+</tr>
+<tr>
+<td nowrap>2</td>
+<td nowrap>TensorNom4d</td>
+<td nowrap>4</td>
+<td nowrap>2</td>
+<td nowrap>1</td>
+</tr>
+<tr>
+<td nowrap>3</td>
+<td nowrap>lasq88</td>
+<td nowrap>1</td>
+<td nowrap>1</td>
+<td nowrap>1</td>
+</tr>
+</tbody></table>
 
 <!-- leaderboard:end -->
 

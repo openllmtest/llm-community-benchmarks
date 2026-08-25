@@ -107,17 +107,49 @@ def hardware_cell(h):
     return "CPU only%s" % ((" (%s)" % cpu) if cpu else "")
 
 
-def comment_cell(comment, limit=80):
+def comment_cell(comment, limit=48):
+    """Short one-line note for the table. GitHub squeezes the last column of a
+    wide markdown table, so a long comment wraps one word per line and wrecks
+    the row. Truncate on a word boundary; the full text stays in the JSON."""
     if not comment:
         return ""
     s = " ".join(str(comment).split())
-    if len(s) > limit:
-        s = s[:limit].rstrip() + "…"
-    return md_escape(s)
+    if len(s) <= limit:
+        return s
+    cut = s[:limit].rsplit(" ", 1)[0].rstrip(";,:-")
+    if len(cut) < max(12, limit // 3):
+        cut = s[:limit].rstrip()
+    return cut + "…"
 
 
 def md_escape(s):
     return str(s).replace("|", "\\|")
+
+
+def html_escape(s):
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;"))
+
+
+def render_table(header, rows):
+    """HTML table with nowrap cells so GitHub cannot collapse columns.
+
+    Pipe tables on github.com wrap every cell to the container width; a long
+    Comment then stacks one word per line. nowrap keeps a row on one line and
+    the page scrolls horizontally instead."""
+    out = ["<table>", "<thead><tr>"]
+    for h in header:
+        out.append("<th nowrap>%s</th>" % html_escape(h))
+    out.extend(["</tr></thead>", "<tbody>"])
+    n = len(header)
+    for row in rows:
+        cells = list(row) + [""] * (n - len(row))
+        out.append("<tr>")
+        for cell in cells[:n]:
+            out.append("<td nowrap>%s</td>" % html_escape(cell))
+        out.append("</tr>")
+    out.extend(["</tbody></table>"])
+    return out
 
 
 def ctx_cell(d):
@@ -128,7 +160,7 @@ def ctx_cell(d):
 def kv_cell(d):
     s = d.get("settings") if isinstance(d.get("settings"), dict) else {}
     v = s.get("kv_cache_quant")
-    return md_escape(str(v)) if isinstance(v, str) and v else ""
+    return str(v) if isinstance(v, str) and v else ""
 
 
 def condition_key(e):
@@ -296,7 +328,7 @@ def flat_setting_cell(v):
         return "on" if v else "off"
     if is_rankable(v):
         return "%g" % v
-    return md_escape(str(v))
+    return str(v)
 
 
 def render_type(tname, live_entries, config_entry):
@@ -355,23 +387,24 @@ def render_type(tname, live_entries, config_entry):
                     lines.append("_No ranked results in this tier yet._")
                     lines.append("")
                     continue
-                header = ["#", "Quantization", "Contributor", "Hardware"] + [m["header"] for m in mdefs] \
-                    + ["Context Window", "KV cache", "Date", "Comment"]
-                lines.append("| " + " | ".join(header) + " |")
-                lines.append("|" + "|".join([" --- "] * len(header)) + "|")
+                header = ["#", "Quant", "Contributor", "Hardware"] + [m["header"] for m in mdefs] \
+                    + ["Ctx", "KV", "Date", "Comment"]
+                table_rows = []
                 rank = 0
                 for e in rows:
                     d = e["data"]
                     m = d.get("metrics") or {}
                     if is_rankable(m.get(primary)):
                         rank += 1
-                    row = [str(rank) if is_rankable(m.get(primary)) else "",
-                           md_escape((d.get("variant") or {}).get("quantization", "")),
-                           md_escape(d.get("contributor", "?")),
-                           md_escape(hardware_cell(d.get("hardware") or {}))] \
-                         + [fmt_num(m.get(x["key"])) for x in mdefs] \
-                         + [ctx_cell(d), kv_cell(d), d.get("date", ""), comment_cell(d.get("comment"))]
-                    lines.append("| " + " | ".join(row) + " |")
+                    table_rows.append(
+                        [str(rank) if is_rankable(m.get(primary)) else "",
+                         (d.get("variant") or {}).get("quantization", ""),
+                         d.get("contributor", "?"),
+                         hardware_cell(d.get("hardware") or {})]
+                        + [fmt_num(m.get(x["key"])) for x in mdefs]
+                        + [ctx_cell(d), kv_cell(d), d.get("date", ""), comment_cell(d.get("comment"))]
+                    )
+                lines.extend(render_table(header, table_rows))
                 lines.append("")
 
             if unranked:
@@ -380,20 +413,21 @@ def render_type(tname, live_entries, config_entry):
                 rows = sorted(upsert(unranked, condition_key), key=lambda e: rank_key(e, primary))
                 lines.append("### %s / unranked" % md_escape(model))
                 lines.append("")
-                header = ["#", "Quantization", "Contributor", "Hardware"] + [m["header"] for m in mdefs] \
-                    + ["Context Window", "KV cache", "Date", "Comment"]
-                lines.append("| " + " | ".join(header) + " |")
-                lines.append("|" + "|".join([" --- "] * len(header)) + "|")
+                header = ["#", "Quant", "Contributor", "Hardware"] + [m["header"] for m in mdefs] \
+                    + ["Ctx", "KV", "Date", "Comment"]
+                table_rows = []
                 for e in rows:
                     d = e["data"]
                     m = d.get("metrics") or {}
-                    row = ["",
-                           md_escape((d.get("variant") or {}).get("quantization", "")),
-                           md_escape(d.get("contributor", "?")),
-                           md_escape(hardware_cell(d.get("hardware") or {}))] \
-                         + [fmt_num(m.get(x["key"])) for x in mdefs] \
-                         + [ctx_cell(d), kv_cell(d), d.get("date", ""), comment_cell(d.get("comment"))]
-                    lines.append("| " + " | ".join(row) + " |")
+                    table_rows.append(
+                        ["",
+                         (d.get("variant") or {}).get("quantization", ""),
+                         d.get("contributor", "?"),
+                         hardware_cell(d.get("hardware") or {})]
+                        + [fmt_num(m.get(x["key"])) for x in mdefs]
+                        + [ctx_cell(d), kv_cell(d), d.get("date", ""), comment_cell(d.get("comment"))]
+                    )
+                lines.extend(render_table(header, table_rows))
                 lines.append("")
         else:
             # flat fallback for types without tier definitions
@@ -402,11 +436,10 @@ def render_type(tname, live_entries, config_entry):
                             if isinstance(s, dict) and s.get("key")]
             lines.append("### %s" % md_escape(model))
             lines.append("")
-            header = ["#", "Quantization", "Contributor", "Hardware"] \
+            header = ["#", "Quant", "Contributor", "Hardware"] \
                 + [s["header"] for s in setting_defs] + [m["header"] for m in mdefs] \
                 + ["Date", "Comment"]
-            lines.append("| " + " | ".join(header) + " |")
-            lines.append("|" + "|".join([" --- "] * len(header)) + "|")
+            table_rows = []
             rank = 0
             for e in rows:
                 d = e["data"]
@@ -414,14 +447,16 @@ def render_type(tname, live_entries, config_entry):
                 s = d.get("settings") if isinstance(d.get("settings"), dict) else {}
                 if is_rankable(m.get(primary)):
                     rank += 1
-                row = [str(rank) if is_rankable(m.get(primary)) else "",
-                       md_escape((d.get("variant") or {}).get("quantization", "")),
-                       md_escape(d.get("contributor", "?")),
-                       md_escape(hardware_cell(d.get("hardware") or {}))] \
-                    + [flat_setting_cell(s.get(x["key"])) for x in setting_defs] \
-                    + [fmt_num(m.get(x["key"])) for x in mdefs] \
+                table_rows.append(
+                    [str(rank) if is_rankable(m.get(primary)) else "",
+                     (d.get("variant") or {}).get("quantization", ""),
+                     d.get("contributor", "?"),
+                     hardware_cell(d.get("hardware") or {})]
+                    + [flat_setting_cell(s.get(x["key"])) for x in setting_defs]
+                    + [fmt_num(m.get(x["key"])) for x in mdefs]
                     + [d.get("date", ""), comment_cell(d.get("comment"))]
-                lines.append("| " + " | ".join(row) + " |")
+                )
+            lines.extend(render_table(header, table_rows))
             lines.append("")
 
     return lines, warnings
@@ -487,11 +522,13 @@ def render_top_contributors(live, config):
     lines.append(" · ".join(rule_bits) + "; superseded results score no points.")
     lines.append("")
     header = ["#", "Contributor", "Points", "Results", "Unique GPUs"]
-    lines.append("| " + " | ".join(header) + " |")
-    lines.append("|" + "|".join([" --- "] * len(header)) + "|")
+    table_rows = []
     for i, c in enumerate(sorted(points, key=lambda k: (-points[k], -counts.get(k, 0), k)), start=1):
-        lines.append("| %d | %s | %d | %d | %d |"
-                     % (i, md_escape(names[c]), points[c], counts.get(c, 0), len(gpus_per_contrib.get(c, ()))))
+        table_rows.append(
+            [str(i), names[c], str(points[c]), str(counts.get(c, 0)),
+             str(len(gpus_per_contrib.get(c, ())))]
+        )
+    lines.extend(render_table(header, table_rows))
     lines.append("")
     return lines
 
