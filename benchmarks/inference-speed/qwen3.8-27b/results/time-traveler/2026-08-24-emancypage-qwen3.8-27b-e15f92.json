@@ -1,0 +1,36 @@
+{
+  "result_id": "2026-08-24-emancypage-qwen3.8-27b-e15f92",
+  "benchmark_type": "inference-speed",
+  "model_family": "qwen3.8-27b",
+  "contributor": "emancypage",
+  "date": "2026-08-24",
+  "tool": {
+    "name": "llama-server + qwen3.8-27b/probe.py",
+    "version": "b10612"
+  },
+  "protocol_version": "1.0",
+  "variant": {
+    "quantization": "Q8_0",
+    "file": "Qwen3.8-27B-Q8_0.gguf",
+    "repo_id": "unsloth/Qwen3.8-27B-GGUF"
+  },
+  "hardware": {
+    "gpu": "NVIDIA GB10 (128 GB unified memory)",
+    "vram_gb": 128
+  },
+  "settings": {
+    "n_gpu_layers": 999,
+    "context_length": 262144,
+    "kv_cache_quant": "f16",
+    "mtp_enabled": true,
+    "spec_draft_n_max": 2,
+    "flash_attn": 1,
+    "prompt_tokens": 120000
+  },
+  "metrics": {
+    "token_generation_tps": 9.0,
+    "ttft_s": 627.6
+  },
+  "comment": "NVIDIA GB10 unified memory; Vulkan arm64 llama.cpp build b10612 (no Linux ARM64 CUDA asset in release).",
+  "raw_output_file": "2026-08-24-emancypage-qwen3.8-27b-e15f92.raw.txt"
+}

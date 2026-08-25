@@ -1,0 +1,47 @@
+{
+  "result_id": "2026-08-24-emancypage-qwen3.8-27b-default-b7a371",
+  "benchmark_type": "inference-speed",
+  "model_family": "qwen3.8-27b",
+  "contributor": "emancypage",
+  "date": "2026-08-24",
+  "tool": {
+    "name": "SGLang + qwen3.8-27b/probe.py",
+    "version": "0.0.0.dev1+g5f55db35e"
+  },
+  "protocol_version": "1.0",
+  "variant": {
+    "quantization": "NVFP4",
+    "file": "Qwen3.8-27B-NVFP4",
+    "repo_id": "RadixArk/Qwen3.8-27B-NVFP4"
+  },
+  "hardware": {
+    "gpu": "NVIDIA GB10 (128 GB unified memory)",
+    "vram_gb": 128
+  },
+  "settings": {
+    "n_gpu_layers": "not_applicable_sglang",
+    "context_length": 262144,
+    "kv_cache_quant": "fp8_e4m3",
+    "mtp_enabled": false,
+    "prompt_tokens": 120000,
+    "speculative_algorithm": "DFLASH",
+    "speculative_draft_model": "z-lab/Qwen3.8-27B-DFlash2",
+    "speculative_num_draft_tokens": 8,
+    "speculative_attention_mode": "decode",
+    "attention_backend": "flashinfer",
+    "chunked_prefill_size": 8192,
+    "max_running_requests": 4,
+    "cuda_graph_max_bs": 4,
+    "mamba_radix_cache_strategy": "extra_buffer",
+    "prefix_cache_reuse": true
+  },
+  "metrics": {
+    "token_generation_tps": 7.9,
+    "ttft_s": 0.7,
+    "ttft_cold_first_run_s": 109.8,
+    "ttft_cached_median_s": 0.7
+  },
+  "comment": "Default GX10 SGLang NVFP4+DFlash2; runs 2-3 reused the 120k-token prefix cache, so median TTFT is warm-cache.",
+  "notes": "The repo probe was sent to the existing default SGLang endpoint on port 8000 without restarting or changing the launcher. The first measured request was cold; subsequent requests reported 120448 cached tokens in the SGLang log. This is an unranked measurement of the live default configuration, not a pinned llama-server comparison.",
+  "raw_output_file": "2026-08-24-emancypage-qwen3.8-27b-default-b7a371.raw.txt"
+}
