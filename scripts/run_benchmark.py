@@ -691,6 +691,7 @@ def _run(args):
         else:
             env = dict(os.environ)
             if cuda_dev is not None:
+                env["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
                 env["CUDA_VISIBLE_DEVICES"] = cuda_dev
             server = ServerProc(cmd_args, env, ROOT)
             if not server.read_until_listening():
