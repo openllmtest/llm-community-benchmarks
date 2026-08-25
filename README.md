@@ -21,7 +21,8 @@ _No ranked results in this tier yet._
 
 | # | Quantization | Contributor | Hardware | tok/s | TTFT s | Context Window | KV cache | Date | Comment |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | UD-Q4_K_XL | TensorNom4d | NVIDIA GeForce RTX 5090 (32 GB) | 63.9 | 73 | 240000 | q8_0 | 2026-08-23 | PCIE 3.0 |
+| 1 | UD-Q4_K_XL | lasq88 | NVIDIA GeForce RTX 5090 (32 GB) | 70.6 | 69.3 | 240000 | q8_0 | 2026-08-25 |  |
+| 2 | UD-Q4_K_XL | TensorNom4d | NVIDIA GeForce RTX 5090 (32 GB) | 63.9 | 73 | 240000 | q8_0 | 2026-08-23 | PCIE 3.0 |
 
 #### qwen3.8-27b / T4 - time-traveler (>32 GB)
 
@@ -44,6 +45,7 @@ _No ranked results in this tier yet._
 | --- | --- | --- | --- | --- |
 | 1 | emancypage | 4 | 2 | 1 |
 | 2 | TensorNom4d | 4 | 2 | 1 |
+| 3 | lasq88 | 1 | 1 | 1 |
 
 <!-- leaderboard:end -->
 
