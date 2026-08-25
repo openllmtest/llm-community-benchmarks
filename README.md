@@ -144,7 +144,7 @@ LEADERBOARD.md                 # regenerated on merge; the Leaderboard section o
 
 ## How automation works
 
-- **On pull request** (anything under `benchmarks/`): CI validates schema, required metrics *and* settings, folder/name consistency of added files, enforces the append-only rule, and posts a comment showing the leaderboard with your run included, so you see where it ranks before merging.
+- **On pull request** (result files, examples, ranking config, schema, or scripts): CI validates schema, required metrics *and* settings, folder/name consistency of added files, enforces the append-only rule, re-checks every existing result, and posts a comment showing the leaderboard with your run included, so you see where it ranks before merging. Docs-only PRs (protocol, model READMEs, probe) do not wake this workflow.
 - **On merge to main:** `LEADERBOARD.md` (and the leaderboard section of this README) are regenerated and committed automatically, only if they changed.
 
 ## Contributing

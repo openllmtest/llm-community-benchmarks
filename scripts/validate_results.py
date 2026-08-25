@@ -11,11 +11,12 @@ Stdlib only. Two modes:
      supersedes targets exist, and that every metric + setting key required
      by config/benchmark_types.json for the file's benchmark type is present.
 
-  2. PR mode: --check-additions with a GitHub unified diff (--diff-file),
-     enforcing the append-only rule: files under .../results/ may only be
-     ADDED, never modified/deleted/renamed. LEADERBOARD.md is generated and
-     must not be hand-edited in a PR. Every added result file is then fully
-     validated as in mode 1.
+  2. PR mode: --check-additions with a change list (--diff-file). Accepts a
+     GitHub unified diff or `git diff --name-status` output. Enforces the
+     append-only rule: files under .../results/ may only be ADDED, never
+     modified/deleted/renamed. LEADERBOARD.md is generated and must not be
+     hand-edited in a PR. Every added result file is then fully validated
+     as in mode 1.
 
 Usage:
   python scripts/validate_results.py                       # validate repo at CWD
@@ -455,6 +456,43 @@ def parse_diff(text):
     return entries
 
 
+def parse_name_status(text):
+    """Return list of (status, path) from `git diff --name-status` output.
+
+    status is the first letter of the git status code (A/M/D/R/C/T/U).
+    For renames and copies the destination path is used.
+    """
+    entries = []
+    for line in text.splitlines():
+        raw = line.strip()
+        if not raw or raw.startswith("#"):
+            continue
+        parts = raw.split("\t")
+        if len(parts) < 2:
+            parts = raw.split()
+        if len(parts) < 2:
+            continue
+        code = parts[0]
+        status = code[0] if code else "M"
+        path = parts[-1].strip().strip('"')
+        if path:
+            entries.append((status, path))
+    return entries
+
+
+def parse_changes(text):
+    """Parse a GitHub unified diff or `git diff --name-status` listing."""
+    stripped = text.lstrip()
+    head = stripped[:200].lower()
+    if head.startswith("<!doctype") or head.startswith("<html") or head.startswith("<head"):
+        raise ValueError(
+            "diff file looks like HTML, not a git diff (the CI fetch likely failed)"
+        )
+    if stripped.startswith("diff --git ") or "\ndiff --git " in text:
+        return parse_diff(text)
+    return parse_name_status(text)
+
+
 def check_additions(diff_text, root, type_req=None):
     """Enforce append-only rule + validate added files.
 
@@ -462,7 +500,7 @@ def check_additions(diff_text, root, type_req=None):
     errors = []
     warnings = []
     checked = []
-    for status, path in parse_diff(diff_text):
+    for status, path in parse_changes(diff_text):
         parts = [p for p in path.replace("\\", "/").split("/") if p]
         lay = layout_parts(path)
         under_results = lay is not None and lay[2] == "results"
@@ -527,7 +565,7 @@ def main(argv=None):
     ap.add_argument("--check-additions", action="store_true",
                     help="PR mode: use the diff to enforce append-only results")
     ap.add_argument("--diff-file", default=None,
-                    help="path to a GitHub unified .diff (required with --check-additions)")
+                    help="GitHub unified .diff or git diff --name-status listing (required with --check-additions)")
     args = ap.parse_args(argv)
 
     root = os.path.abspath(args.root)
@@ -540,7 +578,11 @@ def main(argv=None):
             print("error: --check-additions requires --diff-file", file=sys.stderr)
             return 2
         with open(args.diff_file, "r", encoding="utf-8") as fh:
-            errors, n, warnings = check_additions(fh.read(), root, type_req)
+            try:
+                errors, n, warnings = check_additions(fh.read(), root, type_req)
+            except ValueError as exc:
+                print("error: %s" % exc, file=sys.stderr)
+                return 2
         print("PR mode: checked %d added result file(s), append-only rule verified" % n)
     else:
         files = [fp for fp, _kind in result_files(root)]
